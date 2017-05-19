@@ -30,3 +30,4 @@ TODO:
 - Add short rates
 - easy bonds import
 - extract fwd, par, zero, etc.
+- differential evolution algorithm for optimization
