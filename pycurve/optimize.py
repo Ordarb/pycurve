@@ -1,10 +1,14 @@
 __author__= 'Sandro Braun'
 
+
 import sys
 import pandas as pd
 import numpy as np
 from scipy.optimize import fmin, fmin_l_bfgs_b
 from bond import Bond
+
+
+params = np.array([0.55, -1.35, -13.6, 11.42, 1.15, 0.94])
 
 
 class Optimization(object):
@@ -13,7 +17,13 @@ class Optimization(object):
         self.instruments = instruments
 
 
-    def parametric(self, algorithm = 'sv_adj', target='ytm', p_init='grid', w_method='duration',
+
+    def SmoothSpline(self):
+        pass
+
+
+
+    def Parametric(self, algorithm = 'sv_adj', target='ytm', p_init='grid', w_method='duration',
                  w_short=False):
         '''
         Parameter estimation using parametric models.
@@ -25,45 +35,41 @@ class Optimization(object):
                  w_method:      'duration' or 'uniform' - weighting of individual bonds
                  w_short:       True/False - should have first bond/rate a higher weight  
         ------------------
-        RETURNS  params
+        RETURNS  None
         '''
 
-        # param initialization
-        # optimization algorithm
-
-
         # 1) Select the method
-        self.algorithm = algorithm
+        self.algorithm  = algorithm
+        self._target     = target
+        self._p_init     = p_init
         if algorithm == 'ns':
-            self.algo = getattr(self,'NelsonSiegel')
+            self._algo = getattr(self,'_NelsonSiegel')
         if algorithm == 'sv':
-            self.algo = getattr(self,'Svensson')
+            self._algo = getattr(self,'_Svensson')
         if algorithm == 'sv_adj':
-            self.algo = getattr(self,'SvenssonAdj')
+            self._algo = getattr(self,'_SvenssonAdj')
         if algorithm == 'bc':
-            self.algo = getattr(self,'BoerkChristensen') 
+            self._algo = getattr(self,'_BoerkChristensen') 
 
         # 2) Parameter initialization
-        params  = self.ParamInitialization(method=p_init)
+        params  = self._ParamInitialization(method=p_init)
 
         # 3) prepare for optimization
-        self.w_method   = w_method
-        self.w_short    = w_short
+        self._w_method   = w_method
+        self._w_short    = w_short
                   
         # 4) optimization
-        
         if target == 'ytm':
-            return self.optimizeSwiss(self.function_ytm, params)
-            
+            self._optimizeSwiss(self._function_ytm, params)
+        
         if target == 'price':
-            return self.optimizeSwiss(self.function_price, params)
+            self._optimizeSwiss(self._function_price, params)
 
-        # differential evolution algorithm
+        self._summary()
         
-        return params
         
 
-    def optimizeSwiss(self, function, params):
+    def _optimizeSwiss(self, function, params):
         '''
         Optimization method as used from SwissNationalBank (SNB). Two step optimization using
         sequentially the 1) Simplex and 2) Berndt,Hall, Hall and Hausmann (BHHH) algorithms
@@ -75,13 +81,14 @@ class Optimization(object):
         RETURNS  paramss
         '''
 
+        #TODO: abfangen falls es nicht konvergiert!!!
 
         # 1) weighting method
-        weights = self.weighting(w_method=self.w_method,w_short=self.w_short)
+        weights = self._weighting(w_method=self._w_method,w_short=self._w_short)
 
         # 2) check for starting values of the optimization
         
-        if self.multistart == True:
+        if self._multistart == True:
             min_error   = list()
             opt_params  = list()
 
@@ -92,38 +99,61 @@ class Optimization(object):
                     p,error,_,_,warnflag = fmin(function, p, args=(weights,),maxiter=300,full_output=True, disp=False)
                 except: pass
 
-                bounds = self.boundaries(p)
+                bounds = self._boundaries(p)
                 p,error,warnflag = fmin_l_bfgs_b(function, p, args=(weights,),bounds = list(bounds),approx_grad=True)
                 opt_params.append(p)
                 min_error.append(error)
 
             parameter = opt_params[np.argmin(min_error)]
             self.parameter = parameter
-            return parameter
+            function(parameter,weights)         # for correct optimization errors
+            self._createZero(ttm=None, t_max=30)
+            
                 
-        elif self.multistart == False:
+        elif self._multistart == False:
 
             p = params
             try:
                 p,min_error,_,_,warnflag = fmin(function, p, args=(weights,),maxiter=300,full_output=True, disp=False)
             except: pass
             
-            bounds = self.boundaries(p)
+            bounds = self._boundaries(p)
             p,min_error,warnflag = fmin_l_bfgs_b(function, p, args=(weights,),
                                                   bounds = list(bounds),approx_grad=True)
             self.parameter = p
-            return p
+            self._createZero(ttm=None, t_max=30)
+            
+
+
+    def _summary(self):
+        '''
+        Samples results of the model for better use of output and details. Provides informations
+        about the model, the output and the the error (fit of the model with the underlying bonds).
+        ------------------
+        '''
+        self.model  = {'model':self.algorithm, 
+                       'optimization': {'objectiv function': self._target, 'param_init':self._p_init,
+                                        'weights': self._w_method, 'ShortRate_weighting':self._w_short}}
+        self.date   = self.instruments.date.iloc[0]
+        self.output = {'parameter': self.parameter}
+        self.error  = {'RMSE': self._RMSE, 'MAE': self._MAE}
+        self.zero   = None
+        self.fwd    = None
+        self.par    = None
         
 
     #################################################################################################
     #####################################    Zielfunktionen   #######################################
     #################################################################################################
 
-    def DiscountRates(self, zeros, ttm):
+
+
+
+    def _DiscountRates(self, zeros, ttm):
         #aus der Spot_rate und der Zeit wird der Discount Factor gerechnet
         return np.exp(-(zeros*ttm))
 
-    def boundaries(self,params):
+    def _boundaries(self,params):
         '''
         Defines the boundaries for the parameters as they are used by the respective method in
         Nelson-Siegel, Svensson, or adjusted Svensson. 
@@ -140,7 +170,9 @@ class Optimization(object):
         if (self.algorithm == 'sv') or (self.algorithm == 'sv_adj') or (self.algorithm == 'bc') :
             return ((0,None),(short-params[0],short-params[0]),(None,None),(None,None),(0,None),(0,None))
 
-    def weighting(self, w_method='duration', w_short= True):
+        
+
+    def _weighting(self, w_method='duration', w_short= True):
         '''
         Weighting of the errors of individual bonds is crucial to solve several problems.
         Changing weights in the optimization can also address a potential heteroscedasticity
@@ -158,7 +190,8 @@ class Optimization(object):
         if      w_short         == True:         weights[0] = 100.
         return  weights
         
-    def function_ytm(self, params, weights):
+
+    def _function_ytm(self, params, weights):
         '''
         =========================================================================
         Objective function for optimization problem
@@ -177,15 +210,21 @@ class Optimization(object):
             acc         = np.array(self.instruments.accrued.iloc[i])
             freq        = np.array(self.instruments.cpnFreq.iloc[i])
             coupon      = self.instruments.coupon.iloc[i]
-            zero        = self.algo(params, t) /100     # select correct algo
-            discount    = self.DiscountRates(zero,t)
+            zero        = self._algo(params, t) /100     # select correct algo
+            discount    = self._DiscountRates(zero,t)
             pxFit       = sum(discount*cf)
             ytmFit.append(Bond().ytm_short(pxFit, freq, cf, t, acc, px='dirty'))
             
         distance = weights * (ytmFit - ytmObs) *100
+
+        # error measures
+        self._RMSE = np.sqrt(np.mean((ytmFit-ytmObs)**2))
+        self._MAE  = np.mean(np.abs(ytmFit-ytmObs))
+
         return np.sum(distance**2)
 
-    def function_price(self, params, weights):
+
+    def _function_price(self, params, weights):
         '''
         =========================================================================
         Objective function for optimization problem
@@ -203,17 +242,24 @@ class Optimization(object):
             acc         = np.array(self.instruments.accrued.iloc[i])
             freq        = np.array(self.instruments.cpnFreq.iloc[i])
             coupon      = self.instruments.coupon.iloc[i]
-            zero        = self.algo(params, t) /100     # select correct algo
-            discount    = self.DiscountRates(zero,t)
+            zero        = self._algo(params, t) /100     # select correct algo
+            discount    = self._DiscountRates(zero,t)
             pxFit.append(sum(discount*cf))
             
         distance = weights * (pxFit-pxObs)
         self.distance = distance
+
+        # error measures
+        self._RMSE = np.sqrt(np.mean((pxFit-pxObs)**2))
+        self._MAE  = np.mean(np.abs(pxFit-pxObs))
+
         return np.sum(distance**2)
 
     #############################################################################
 
-    def ParamInitialization(self, method='grid'):
+
+
+    def _ParamInitialization(self, method='grid'):
         '''
         Parameter initalization is very important. Currently, there are 2 methods implemented:
         Either entering a given list of factors (values from last date) or selecting 'grid'
@@ -225,16 +271,16 @@ class Optimization(object):
         '''
 
         if not isinstance(method,str):
-            self.multistart = False
+            self._multistart = False
             self.parameter = method
             return np.array(method)
 
         if method == 'grid':
                         
             # 1) initialte parameters
-            self.multistart = True
-            longYTM     = np.log(1 + self.instruments.ytm.max())*100     # continously compounded max yield
-            shortYTM    = np.log(1 + self.instruments.ytm.min())*100   # continously compounded min yield
+            self._multistart = True
+            longYTM     = np.log(1 + self.instruments.ytm.max())     # continously compounded max yield
+            shortYTM    = np.log(1 + self.instruments.ytm.min())   # continously compounded min yield
             longTTM     = self.instruments.ttm.max()
             beta0       = [longYTM]
             beta1       = [shortYTM - beta0]
@@ -285,9 +331,46 @@ class Optimization(object):
             self.parameter = np.array(params)
             return np.array(params)
 
+
+
+
+
+
+   
+
+
+    def _createZero(self, ttm=None, t_max=30):
+        '''
+        Creates Zero Yields from the parameters estimated. Can chose zero yields
+        of 'bonds' or of a DateRange up to 30:
+        ------------------
+        INPUT    ttm:     None or 'bonds'
+                 t_max:   int
+        ------------------
+        RETURNS  zero
+        '''
+
+
+        if isinstance(ttm,list):
+            self.zero = self._algo(self.parameter,np.arange(1,t_max,1))
+        if ttm == None:
+            if self.instruments.ttm.max() > t_max:
+                t_max = self.instruments.ttm.max()
+            self.zero = self._algo(self.parameter,np.arange(1,int(t_max)+1,1))
+
+    def _createFwd(self):
+        pass
+
+    def _createPar(self):
+        pass
+
+                    
+
+
+
     #############################################################################   
 
-    def NelsonSiegel(self, params, ttm):
+    def _NelsonSiegel(self, params, ttm):
         '''
         Calculates the zero rate using the Nelson-Siegel function.
         ------------------
@@ -305,7 +388,7 @@ class Optimization(object):
         term2 = b2 * ((1-np.exp(-ttm/tau1))/(ttm/tau1)-np.exp(-ttm/tau1))
         return term0 + term1 + term2
 
-    def Svensson(self, params, ttm):
+    def _Svensson(self, params, ttm):
         '''
         Calculates the zero rate using the Nelson-Siegel-Svensson function.
         ------------------
@@ -324,7 +407,7 @@ class Optimization(object):
         term3 = b3 * ((1-np.exp(-ttm/tau2))/(ttm/tau2)-np.exp(-ttm/tau2))
         return term0 + term1 + term2 + term3
 
-    def SvenssonAdj(self, params, ttm):
+    def _SvenssonAdj(self, params, ttm):
         '''
         Calculates the zero rate using an adjusted Nelson-Siegel-Svensson function
         according to De Pooter (2007). It addresses a potential multicollinearity
@@ -345,7 +428,7 @@ class Optimization(object):
         term3 = b3 * ((1-np.exp(-ttm/tau2))/(ttm/tau2)-np.exp(-2*ttm/tau2))
         return term0 + term1 + term2 + term3
 
-    def BoerkChristensen(self, params, ttm):
+    def _BoerkChristensen(self, params, ttm):
         '''
         Similar to the Svensson algorithm, but changes the formula with the
         last curvature parameter
@@ -364,3 +447,5 @@ class Optimization(object):
         term2 = b2 * ((1-np.exp(-ttm/tau1))/(ttm/tau1)-np.exp(-ttm/tau1))
         term3 = b3 * ((1-np.exp(-(2*ttm)/tau2))/((2*ttm)/tau2))
         return term0 + term1 + term2 + term3
+        
+    #############################################################################
