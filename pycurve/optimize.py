@@ -1,5 +1,3 @@
-__author__= 'Sandro Braun'
-
 
 import sys
 import pandas as pd
@@ -8,20 +6,10 @@ from scipy.optimize import fmin, fmin_l_bfgs_b
 from bond import Bond
 
 
-params = np.array([0.55, -1.35, -13.6, 11.42, 1.15, 0.94])
-
-
 class Optimization(object):
 
     def __init__(self, instruments):
         self.instruments = instruments
-
-
-
-    def SmoothSpline(self):
-        pass
-
-
 
     def Parametric(self, algorithm = 'sv_adj', target='ytm', p_init='grid', w_method='duration',
                  w_short=False):
@@ -37,7 +25,6 @@ class Optimization(object):
         ------------------
         RETURNS  None
         '''
-
         # 1) Select the method
         self.algorithm  = algorithm
         self._target     = target
@@ -68,7 +55,6 @@ class Optimization(object):
         self._summary()
         
         
-
     def _optimizeSwiss(self, function, params):
         '''
         Optimization method as used from SwissNationalBank (SNB). Two step optimization using
@@ -124,7 +110,6 @@ class Optimization(object):
             self._createZero(ttm=None, t_max=30)
             
 
-
     def _summary(self):
         '''
         Samples results of the model for better use of output and details. Provides informations
@@ -145,9 +130,6 @@ class Optimization(object):
     #################################################################################################
     #####################################    Zielfunktionen   #######################################
     #################################################################################################
-
-
-
 
     def _DiscountRates(self, zeros, ttm):
         #aus der Spot_rate und der Zeit wird der Discount Factor gerechnet
@@ -170,8 +152,7 @@ class Optimization(object):
         if (self.algorithm == 'sv') or (self.algorithm == 'sv_adj') or (self.algorithm == 'bc') :
             return ((0,None),(short-params[0],short-params[0]),(None,None),(None,None),(0,None),(0,None))
 
-        
-
+       
     def _weighting(self, w_method='duration', w_short= True):
         '''
         Weighting of the errors of individual bonds is crucial to solve several problems.
@@ -256,8 +237,6 @@ class Optimization(object):
         return np.sum(distance**2)
 
     #############################################################################
-
-
 
     def _ParamInitialization(self, method='grid'):
         '''
