@@ -1,17 +1,10 @@
-__author__= 'Sandro Braun'
-
 
 import sys
 import pandas as pd
 import numpy as np
 from bond import Bond
 from optimize import Optimization
-from curveOptics import Optics
 import matplotlib.pyplot as plt
-
-def data():
-    return pd.read_pickle(r'U:\Ordarb\nss-0.0.1\pycurve\swiss.pkl')
-
 
 
 class Curve(Optimization):
@@ -27,7 +20,6 @@ class Curve(Optimization):
         self.instruments = instruments
         self._payFreq     = payFreq
         instruments = self._BondInfo(instruments)
-
 
 
 
@@ -86,15 +78,3 @@ class Curve(Optimization):
         instruments['timing']   = timing
         instruments['accrued'] = accrued
         return instruments
-
-
-
-
-    def __clean_curve(self, off_par=0.05, min_size=False):
-
-        ''' accroding to merill lynch exponential spline model for canada'''
-
-        # exclude if ytm vs coupon <> 500bp
-        # exclude min_size
-        
-        return off_par
