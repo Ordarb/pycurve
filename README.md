@@ -1,5 +1,5 @@
 ------------------------------
-pycurve 0.0.1
+pycurve 0.1.0
 
 Interest Rate Term Structure Modelling
 ------------------------------
@@ -23,6 +23,7 @@ Fit the yield curve by relying on a piecewise polinomial (spline function), wher
 joined smoothly at the so-called knot points. Over a closed interval, a given continuous function can be 
 approximated by selecting an arbitrary polynomial, where the goodness-of-fit increases with the order of the 
 polynomial. Significant contributions are the smoothing-spline method, an extension of the cubic spline technique.
+These models are currently under construction and not available in version 0.1.
 
 TODO:
 - Optimization Error
@@ -31,3 +32,4 @@ TODO:
 - easy bonds import
 - extract fwd, par, zero, etc.
 - differential evolution algorithm for optimization
+- Smoothed spline model
