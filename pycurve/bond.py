@@ -5,15 +5,11 @@ import pandas as pd
 from scipy import optimize
 
 
-
-
 class Bond(object):
-
 
     def ttm(self, colStart, colEnd):
         return (colEnd-colStart) / np.timedelta64(1, 'D')
 
-    
     def duration(self, px, cf, TimeFactor, ytm):
         '''
         =========================================================================
@@ -25,7 +21,6 @@ class Bond(object):
         md = D/(1+ytm)
         self.modDuration = md
         return md
-
 
     def structure(self, cpn, ttm, par=100, freq=1):
         '''
@@ -66,7 +61,6 @@ class Bond(object):
         ytm = self.ytm_short(price, freq, c, t, accrued,px=px)
         self.ytm = ytm
         return ytm, c, t, accrued
-
 
     def ytm_short(self, price, freq, c, t, accrued, px='clean'):
         '''
