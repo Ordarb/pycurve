@@ -26,10 +26,12 @@ polynomial. Significant contributions are the smoothing-spline method, an extens
 These models are currently under construction and not available in version 0.1.
 
 TODO:
+
 Parametric
 - Larger Error summary (RMSEs, etc.)
 - Add short rates / better data import
 - extract fwd, par, zero, etc.
 - differential evolution algorithm for optimization
+
 Spline:
 - implementation of other penalty terms (FNZ, etc.)
