@@ -28,10 +28,13 @@ TODO:
 
 Parametric
 - Larger Error summary (RMSEs, etc.)
+- fitted prices or yields for comparison
 - Add short rates / better data import
-- extract fwd, par, zero, etc.
-- differential evolution algorithm for optimization
+- extract fwd, par, zero, etc. without error
+- differential evolution algorithm for optimization -> global minima
 
 Spline:
+- make it work correctly
+- speed it up
 - implementation of other penalty terms (FNZ, etc.)
-- formula for penalty term if optim. target is 'ytm'
+- formula for penalty term if optim. target is 'ytm'?
