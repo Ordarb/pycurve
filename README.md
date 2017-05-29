@@ -28,10 +28,9 @@ TODO:
 
 Parametric
 - Larger Error summary (RMSEs, etc.)
-- fitted prices or yields for comparison
 - Add short rates / better data import
-- extract fwd, par, zero, etc. without error
-- differential evolution algorithm for optimization -> global minima
+- extract par yield
+- differential evolution algorithm for optimization -> global minimum
 
 Spline:
 - make it work correctly
