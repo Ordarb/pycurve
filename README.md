@@ -26,14 +26,19 @@ These models are currently under construction and not available in version 0.1.
 
 TODO:
 
-Parametric
-- Larger Error summary (RMSEs, etc.)
+General
 - Add short rates / better data import
 - extract par yield
+- Larger Error summary (RMSEs, etc.)
+- faster minimization algorithm than simplex
+
+Parametric
 - differential evolution algorithm for optimization -> global minimum
+- SvenssonAdj fwd calculation is wrong
 
 Spline:
 - make it work correctly
 - speed it up
+- better inital values
 - implementation of other penalty terms (FNZ, etc.)
 - formula for penalty term if optim. target is 'ytm'?
