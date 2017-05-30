@@ -1,11 +1,13 @@
+__author__= 'Sandro Braun'
 
 import sys
 import pandas as pd
 import numpy as np
 from bond import Bond
 from optimize import Optimization
+import seaborn as sns
 import matplotlib.pyplot as plt
-
+  
 
 class Curve(Optimization):
 
@@ -20,7 +22,6 @@ class Curve(Optimization):
         self.instruments = instruments
         self._payFreq     = payFreq
         instruments = self._BondInfo(instruments)
-
 
 
     def _BondInfo(self, instruments):
@@ -78,3 +79,60 @@ class Curve(Optimization):
         instruments['timing']   = timing
         instruments['accrued'] = accrued
         return instruments
+
+
+
+
+    def __clean_curve(self, off_par=0.05, min_size=False):
+
+        ''' accroding to merill lynch exponential spline model for canada'''
+
+        # exclude if ytm vs coupon <> 500bp
+        # exclude min_size
+        
+        return off_par
+
+
+
+
+    def plotting(self, obj):
+        '''
+        Charting the curve classes (yld, zero, fwd).
+        ------------------
+        INPUT    obj:    curve object or list of curve objects
+        ------------------
+        '''
+        if not isinstance(obj,list):
+            obj = [obj]
+
+        clr = sns.color_palette("hls", len(obj))
+
+        maxlz = 10
+        ymin  = 0.0
+        ymax  = 0.01
+
+        plt.close('all')
+        for i,o in enumerate(obj):
+
+            if   o.instruments.zero.max() < 0.0015:
+                zero = o.instruments.zero*100
+                fwd = o.instruments.fwd*100
+            elif o.instruments.zero.max() > 0.15:
+                zero = o.instruments.zero/100
+                fwd = o.instruments.fwd/100                
+            else:
+                zero = o.instruments.zero
+                fwd = o.instruments.fwd
+
+            maxlz = max(o.instruments.ttm.max(),maxlz)
+            ymin  = min(o.instruments.ytm.min(),zero.min(),fwd.min(),ymin)
+            ymax  = max(o.instruments.ytm.max(),zero.max(),fwd.max(),ymax)
+
+            plt.scatter(o.instruments.ttm,o.instruments.ytm,color=clr[i])                
+            plt.plot(o.instruments.ttm,zero,label='%s zero' %o.algorithm,color=clr[i])
+            plt.plot(o.instruments.ttm,fwd,label='%s fwd' %o.algorithm,linestyle='--',color=clr[i])
+
+        plt.legend(loc='best')
+        plt.xlim((0,maxlz+1))
+        plt.ylim((ymin-0.005,ymax+0.005))
+        plt.show()
