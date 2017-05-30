@@ -1,7 +1,7 @@
 ------------------------------
-pycurve 0.1.0
+# pycurve 0.1.0
 
-Yield Curve Estimation
+# Yield Curve Estimation
 ------------------------------
 
 This module allows for yield curve estimation by applying the standard approaches in the academic literature. 
@@ -26,25 +26,25 @@ instantanous forward rate (roughness penalty), like in the "Variable Roughness P
 Bank of England.
 
 --------------------------------------------------------------------
-Example:
+# Example:
 
-# load data
+1) load data
 import pycurve
 data1 = pycurve.Data().db_data('SWISS','CHF','newest')
 data2 = pycurve.Data().bb_srch('SRCH_SWISS)
 
-# estimate yield curve
+2) estimate yield curve
 c1 = pycurve.Curve().Parameteric(algorithm='ns',target='ytm', w_method='duration')    # nelson-siegel
 c2 = pycurve.Curve().Parameteric(algorithm='sv',target='ytm', w_method='duration')    # svensson
 c3 = pycurve.Curve().Parameteric(algorithm='bc',target='ytm', w_method='duration')    # björn-christensen
 c4 = pycurve.Curve().SmoothingSpline(algorithm='VRP', target='price', w_method='duration', knots=[7,15]
 
-# show results
+3) show results
 c1.plotting([c1,c2,c3,c4])
 
 ----------------------------------------------------------------------
 
-TODO (version 0.2.0):
+# TODO (version 0.2.0):
 
 General
 - Add short rates / better data import
