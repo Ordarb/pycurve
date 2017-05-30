@@ -30,21 +30,22 @@ Bank of England.
 Example:
 
 - Load data
-
+```sh
 $ import pycurve
 $ data1 = pycurve.Data().db_data('SWISS','CHF','newest')
 $ data2 = pycurve.Data().bb_srch('SRCH_SWISS)
-
+```
 - Estimate yield curve
-
+```sh
 $ c1 = pycurve.Curve().Parameteric(algorithm='ns',target='ytm', w_method='duration')    # nelson-siegel
 $ c2 = pycurve.Curve().Parameteric(algorithm='sv',target='ytm', w_method='duration')    # svensson
 $ c3 = pycurve.Curve().Parameteric(algorithm='bc',target='ytm', w_method='duration')    # björn-christensen
 $ c4 = pycurve.Curve().SmoothingSpline(algorithm='VRP', target='price', w_method='duration', knots=[7,15]
-
+```
 - Show results
+```sh
 $ c1.plotting([c1,c2,c3,c4])
-
+```
 ----------------------------------------------------------------------
 
 
