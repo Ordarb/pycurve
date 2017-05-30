@@ -8,7 +8,6 @@ except: print('Bonds-module not available.')
 try:    from bb import BSRCHInterface, BLPInterface
 except: print('Bloomberg-module not available.')
 
-
     
 class Data(object):
 
