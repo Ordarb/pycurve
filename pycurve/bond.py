@@ -79,7 +79,7 @@ class Bond(object):
         elif px == 'clean':
             px_dirty = price + accrued
 
-        ytm_func = lambda (y): sum(c / (1 + y / freq) ** (freq * t)) - px_dirty
+        ytm_func = lambda y: sum(c / (1 + y / freq) ** (freq * t)) - px_dirty
         initial = min(c[0] / 100, 0.02)
 
         ytm = optimize.newton(ytm_func, initial)

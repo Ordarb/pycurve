@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from scipy.interpolate import splint
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -88,20 +88,4 @@ class Charting(object):
         plt.show()
 
 
-class Transformation(object):
 
-    @staticmethod
-    def zero2par(self, zero, ttm):
-        # todo: formula hast to be checked. not working at the moment
-        discountrate = (1. / (1 + zero)) ** ttm
-        par = (1 - discountrate) / np.cumsum(discountrate)
-        return par
-
-    @staticmethod
-    def fwd2zero(ttm, splineObj):
-        zero = [splint(0, t, splineObj) / t for t in ttm]
-        return zero
-
-    @staticmethod
-    def zero2discount(zeros, ttm):
-        return np.exp(-(zeros * ttm))

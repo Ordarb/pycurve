@@ -3,7 +3,7 @@ import numpy as np
 from scipy.optimize import fmin, fmin_l_bfgs_b
 from .bond import Bond
 from .instruments import meta_data
-from .curve import Transformation
+from .utils import Transformation
 
 
 class Parametric(object):
@@ -211,7 +211,7 @@ class Parametric(object):
             freq = np.array(self.instruments.cpnFreq.iloc[i])
             coupon = self.instruments.coupon.iloc[i]
             zero = self._algo(params, t)[0] / 100  # select correct algo
-            discount = Transformation.zero2discount(zero, t)
+            discount = Transformation().zero2discount(zero, t)
             pxFit = sum(discount * cf)
             ytmFit.append(Bond().ytm_short(pxFit, freq, cf, t, acc, px='dirty'))
 
@@ -244,7 +244,7 @@ class Parametric(object):
             freq = np.array(self.instruments.cpnFreq.iloc[i])
             coupon = self.instruments.coupon.iloc[i]
             zero = self._algo(params, t)[0] / 100  # select correct algo
-            discount = Transformation.zero2discount(zero, t)
+            discount = Transformation().zero2discount(zero, t)
             pxFit.append(sum(discount * cf))
 
         distance = weights * (pxFit - pxObs)

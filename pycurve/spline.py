@@ -6,7 +6,7 @@ from scipy import integrate
 from .bond import Bond
 from .instruments import meta_data
 import time
-from .curve import Transformation
+from .utils import Transformation
 
 
 class SmoothingSpline(object):
@@ -96,7 +96,8 @@ class SmoothingSpline(object):
             coupon = self.instruments.coupon.iloc[i]
 
             fwd = splev(t, (knots, coeff, order))
-            zero = Transformation().fwd2zero(t, (knots, coeff, order))
+            zero = \
+                formation().fwd2zero(t, (knots, coeff, order))
 
             discount = Transformation().zero2discount(zero, t)
 

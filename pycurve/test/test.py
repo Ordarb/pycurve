@@ -2,9 +2,9 @@ import os
 import unittest
 import pandas as pd
 
-from ..pycurve.utils import load_pickle
-from ..pycurve.parametric import Parametric
-from ..pycurve.spline import SmoothingSpline
+from ..utils import load_pickle
+from ..parametric import Parametric
+from ..spline import SmoothingSpline
 
 
 def load_data():
