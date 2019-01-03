@@ -1,11 +1,15 @@
-import pickle
 import numpy as np
 from scipy.interpolate import splint
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 
 def save_pickle(path, obj):
     with open(path, 'wb') as handle:
-        pickle.dump(obj, handle)
+        pickle.dump(obj, handle, protocol=2)
 
 
 def load_pickle(path):
